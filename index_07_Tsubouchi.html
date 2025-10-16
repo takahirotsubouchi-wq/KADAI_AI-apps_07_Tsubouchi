@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>AI活用アプリ 07_Tsubouchi</title>
+    <!-- jQuery読み込み -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- axios読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- CSS読み込み -->
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+    <header>
+        <h1>AIチャットボット 07_Tsubouchi</h1>
+    </header>
+    <main>
+        <div id="chat-area">
+        <div class="message ai">
+            🤖 AIからの回答が表示されます
+        </div>           
+        </div>
+        <textarea id="user-input" placeholder="メッセージを入力..."></textarea>
+        <ul>
+            <li id="send">送信</li>
+        </ul>
+    </main>
+
+
+<!-- <script type="module" src="js/script.js"> -->
+<script type="module">
+    // <!-- // -=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-== -->
+    // <!-- // ★ の箇所を順に実装していきましょう！ -->
+    // <!-- // -=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-== -->
+
+    // <!-- // ★ js/config.js に APIキーを設定する -->
+
+    // <!-- // APIキーの情報を読み込む -->
+import { GEMINI_API_KEY } from "./js/config.js";
+
+let chatHistory = [];
+
+// <!-- // メッセージ送信 -->
+$("#send").on("click", function () {
+    const userMessage = $("#user-input").val(); // ユーザーメッセージを取得
+    if (!userMessage) return; // ユーザーメッセージが空の場合は処理を終了
+
+    $("#chat-area").append(`<div class='message user'>👤 ${userMessage}</div>`); // ユーザーメッセージを表示
+    $("#user-input").val(""); // ユーザーメッセージを表示
+
+    // ★ Gemini API を実行する関数 callGeminiAPI を呼び出す
+    callGeminiAPI(userMessage)
+
+
+});
+
+// チャットクリア
+$("#clear").on("click", function () {
+    $("#chat-area").html(`<div class='message ai'>🤖 こんにちは！何でもお聞きください！</div>`); // 初期メッセージをセット
+    chatHistory = []; // 会話履歴をクリア
+});
+
+// Gemini API呼び出し関数
+function callGeminiAPI(message) {
+    // ★ Google AI Studio or API リファレンスを参考に URL を設定する
+    // API リファレンス: https://ai.google.dev/api?hl=ja
+    // URL 設定例: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+
+    // Gemini APIに渡すデータ を作成
+    const data = {
+        contents: [
+            {
+                parts: [{ text: message }],
+            },
+        ],
+    }
+
+    // Gemini APIを呼び出し
+    axios.post(url, data, { headers: { "x-goog-api-key": GEMINI_API_KEY}}) // URL, データ, ヘッダ情報（認証情報）
+        .then(function (response) {
+    // データを抽出
+            const data = response.data;
+
+    // ★ AIの回答を取得 ... data.candidates[0].content.parts[0].text
+            const aiResponse = data.candidates[0].content.parts[0].text;
+   
+            $("#chat-area").append(`<div class='message ai'>🤖 ${aiResponse}</div>`); // AIの回答を表示
+        })
+        .catch(function (error) {
+            console.error("API Error:", error); // APIエラーを表示
+            $("#chat-area").append(`<div class="message ai">🤖 エラーが発生しました。API キーを確認してください。</div>`);
+        });
+}
+
+</script>
+</body>
+</html>
